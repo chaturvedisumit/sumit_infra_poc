@@ -1,0 +1,33 @@
+name: Weekly Release
+
+on:
+ push :
+    branches :
+      - main
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name: Get Draft Release ID
+      id: get_draft_id
+      run: |
+        draft_id=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases" | jq -r '.[] | select(.draft == true) | .id')
+        echo "::set-output name=draft_id::$draft_id"
+
+    - name: Publish Release
+      if: steps.get_draft_id.outputs.draft_id != null
+      run: |
+        draft_id=${{ steps.get_draft_id.outputs.draft_id }}
+        echo "Publishing release from draft ID: $draft_id"
+        curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/${{ github.repository }}/releases/$draft_id" -d '{"draft": false}'
+
