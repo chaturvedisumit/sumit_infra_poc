@@ -217,6 +217,8 @@ if __name__ == "__main__":
     else:
         new_version = "v0.0.0"
 
+    print("new_version",new_version)
+
     # Fetch closed pull requests and generate release notes
     release_notes = fetch_closed_pull_requests(repo)
 
