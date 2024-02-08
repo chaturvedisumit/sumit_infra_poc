@@ -1,13 +1,19 @@
-name: PR Branch Labeler
+name: PR Labeler
+on:
+  pull_request:
+    types: [opened]
 
-on: pull_request
+permissions:
+  contents: read
 
 jobs:
-  label_prs:
+  pr-labeler:
+    permissions:
+      contents: read # for TimonVS/pr-labeler-action to read config file
+      pull-requests: write # for TimonVS/pr-labeler-action to add labels in PR
     runs-on: ubuntu-latest
     steps:
-    - name: Label PRs
-      if: github.event.action == 'opened' # Only run the action when the PR was first opened
-      uses: ffittschen/pr-branch-labeler@v1
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: TimonVS/pr-labeler-action@v4
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml # optional, .github/pr-labeler.yml is the default value
