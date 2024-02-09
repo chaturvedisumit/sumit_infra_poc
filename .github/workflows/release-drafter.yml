@@ -1,18 +1,48 @@
-name: Release Drafter
+name: Generate Release Notes
 
 on:
   push:
-    # branches to consider in the event; optional, defaults to all
     branches:
       - release
-
 jobs:
-  update_release_draft:
+  generate_release_notes:
     runs-on: ubuntu-latest
+
     steps:
-      # Drafts your next Release notes as Pull Requests are merged into "master"
-    - name: Create Draft Release
-      id: create_release
-      uses: release-drafter/release-drafter@v5
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: pip install PyGithub
+
+      - name: Fetch draft release
+        id: fetch_draft_release
+        run: |
+          draft_tag=$(curl -sH "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              https://api.github.com/repos/${{ github.repository }}/releases | jq -r '.[] | select(.draft) | .tag_name')
+          echo "::set-output name=DRAFT_RELEASE_TAG_NUMBER::$draft_tag"
+
+      - name: Check if there is a draft release
+        id: check_draft_release
+        run: |
+          if [[ -n "$DRAFT_RELEASE_TAG_NUMBER" ]]; then
+            echo "Draft release exists"
+            echo "::set-output name=LATEST_TAG::''"
+          else
+            latest_tag=$(curl -sH "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[0].name')
+            echo "::set-output name=LATEST_TAG::$latest_tag"
+          fi
+
+      - name: Run script
+        run: python .github/scripts/generate-release-notes.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          DRAFT_RELEASE_TAG_NUMBER: ${{ steps.fetch_draft_release.outputs.DRAFT_RELEASE_TAG_NUMBER }}
+          LATEST_TAG: ${{ steps.check_draft_release.outputs.LATEST_TAG }}

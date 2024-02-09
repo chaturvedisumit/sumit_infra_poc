@@ -2,7 +2,7 @@ import requests
 from github import Github
 
 # Add your repositories here
-repositories = ["owner/repo1", "owner/repo2"]
+repositories = ["chaturvedisumit/sumit_infra_poc", "chaturvedisumit/release_notes_poc"]
 
 def get_release_notes(repo):
     g = Github(requests.get(f"https://api.github.com/repos/{repo}").json()["full_name"])
