@@ -17,8 +17,7 @@ def increment_version(latest_tag_name):
     elif branch_name=="hotfix" or branch_name=="hot_fix":
        change_type = "patch"
     else:
-        change_type = 'misc'
-       
+        change_type = 'misc'    
     version_numbers = latest_tag_name[1:].split('.')
 
     # Increment the version numbers based on the change type
