@@ -42,7 +42,7 @@ jobs:
       - name: Run script
         run: python .github/scripts/generate-release-notes.py
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           DRAFT_RELEASE_TAG_NUMBER: ${{ steps.fetch_draft_release.outputs.DRAFT_RELEASE_TAG_NUMBER }}
           LATEST_TAG: ${{ steps.check_draft_release.outputs.LATEST_TAG }}
