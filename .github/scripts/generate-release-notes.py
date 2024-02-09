@@ -16,6 +16,8 @@ def increment_version(latest_tag_name):
        change_type = "minor"
     elif branch_name=="hotfix" or branch_name=="hot_fix":
        change_type = "patch"
+    else:
+        changetype = 'misc'
        
     version_numbers = latest_tag_name[1:].split('.')
 
@@ -208,6 +210,8 @@ if __name__ == "__main__":
 
     latest_draft_tag = os.environ.get('DRAFT_RELEASE_TAG_NUMBER')
     latest_tag = os.environ.get('LATEST_TAG')
+
+    print()
     
     # Increment the version based on the type of change
     if latest_draft_tag is not None and latest_draft_tag != "":
