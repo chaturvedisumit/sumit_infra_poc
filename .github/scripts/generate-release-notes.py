@@ -159,7 +159,10 @@ def create_draft_release(repo, release_notes, version):
     if latest_release == "" :
         release_body = ""
     else:
-        release_body = latest_release.body
+        if latest_release.draft:
+            release_body = latest_release.body
+        else:
+            release_body = ""
 
     # Merge the old body with the new release notes
     merged_message = release_body + '\n\n' + release_notes
@@ -232,26 +235,6 @@ if __name__ == "__main__":
     # Create a new tag with the updated version
     release_notes_final = create_draft_release(repo, release_notes, new_version)
 
-    # Check if an existing draft release exists
-    try:
-        latest_release = repo.get_releases()[0]
-    except:
-        latest_release = ""
-    
-    
-    # If an existing draft release is found, create a new draft release and delete the existing one
-    if latest_release != "" :
-        
-        new_draft_release = repo.create_git_release(
-            tag=new_version,
-            name=new_version,
-            message=release_notes_final,
-            draft=True
-        )
-
-        # Delete the existing draft release
-        latest_release.delete_release()
-
     print(f"Draft release {new_version} created successfully.")
-    
+
   
