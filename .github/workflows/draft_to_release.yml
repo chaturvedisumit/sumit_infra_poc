@@ -21,7 +21,7 @@ jobs:
     - name: Get Draft Release ID
       id: get_draft_id
       run: |
-        draft_id=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases" | jq -r '.[] | select(.draft == true) | .id')
+        draft_id=$(curl -s -H "Authorization: Bearer ${{ secrets.MY_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases" | jq -r '.[] | select(.draft == true) | .id')
         echo "::set-output name=draft_id::$draft_id"
 
     - name: Publish Release
@@ -30,9 +30,9 @@ jobs:
       run: |
         draft_id=${{ steps.get_draft_id.outputs.draft_id }}
         echo "Publishing release from draft ID: $draft_id"
-        curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/${{ github.repository }}/releases/$draft_id" -d '{"draft": false}'
+        curl -X PATCH -H "Authorization: Bearer ${{ secrets.MY_TOKEN }}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/${{ github.repository }}/releases/$draft_id" -d '{"draft": false}'
 
-        release_info=$(curl -sH "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+        release_info=$(curl -sH "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.MY_TOKEN }}" \
         https://api.github.com/repos/${{ github.repository }}/releases | \
         jq -r '.[] | select(.draft == false) | .html_url')
 
@@ -52,3 +52,8 @@ jobs:
         slack-message: |
           Bi-Weekly Release: The release has been successfully published for  ${{ steps.slack.outputs.repo_name }}.
           Release Details: ${{ steps.publish_release.outputs.release_info }}
+
+    - name: Compile Release Notes
+      run: python .github/scripts/compile_release_notes.py
+      env:
+        GITHUB_TOKEN: ${{ secrets.MY_TOKEN }}
