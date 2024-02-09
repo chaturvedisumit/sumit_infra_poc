@@ -23,26 +23,35 @@ jobs:
         pip install PyGithub
         pip install PyGithub requests
 
-    - name: Get Draft Release ID
-      id: get_draft_id
+  - name: Publish Latest Draft Release
+      id: publish_latest_draft_release
       run: |
-        draft_id=$(curl -s -H "Authorization: Bearer ${{ secrets.MY_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases" | jq -r '.[] | select(.draft == true) | .id')
-        echo "::set-output name=draft_id::$draft_id"
+        latest_draft_id=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/${{ github.repository }}/releases?per_page=100" | jq '[.[] | select(.draft == true) | {id: .id, created_at: .created_at}] | sort_by(.created_at) | last | .id')
 
-    - name: Publish Release
-      id: publish_release
-      if: steps.get_draft_id.outputs.draft_id != null
-      run: |
-        draft_id=${{ steps.get_draft_id.outputs.draft_id }}
-        echo "Publishing release from draft ID: $draft_id"
-        curl -X PATCH -H "Authorization: Bearer ${{ secrets.MY_TOKEN }}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/${{ github.repository }}/releases/$draft_id" -d '{"draft": false}'
+        if [ -n "$latest_draft_id" ]; then
+          echo "Publishing release from draft ID: $latest_draft_id"
 
-        release_info=$(curl -sH "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.MY_TOKEN }}" \
+          new_draft_id=$(curl -X POST -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/${{ github.repository }}/releases/$latest_draft_id/duplicate" | jq '.id')
+
+          if [ -n "$new_draft_id" ]; then
+            echo "New draft release created from draft ID: $latest_draft_id"
+          else
+            echo "Failed to create new draft release from draft ID: $latest_draft_id"
+          fi
+
+          curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/${{ github.repository }}/releases/$latest_draft_id" -d '{"draft": false}'
+        else
+          echo "No draft releases found."
+        fi
+
+
+        release_info=$(curl -sH "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
         https://api.github.com/repos/${{ github.repository }}/releases | \
         jq -r '.[] | select(.draft == false) | .html_url')
 
         echo "The release info is"$release_info
         echo "::set-output name=release_info::$release_info"
+        
     - name: Post to a Slack channel
       id: slack
       if: steps.publish_release.outputs.release_info != ''
@@ -62,4 +71,4 @@ jobs:
       run: python .github/scripts/compile_release_notes.py
       env:
         GITHUB_TOKEN: ${{ secrets.MY_TOKEN }}
-        
+
