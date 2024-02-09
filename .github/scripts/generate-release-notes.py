@@ -217,7 +217,7 @@ if __name__ == "__main__":
     # Increment the version based on the type of change
     if latest_draft_tag is not None and latest_draft_tag != "":
         new_version = increment_version(latest_draft_tag)  # Example: Incrementing minor version
-    elif latest_tag is not None and latest_tag != "":
+    elif latest_tag is not None and latest_tag != "" and latest_tag is not "null":
         new_version = increment_version(latest_tag)
     else:
         new_version = "v0.0.0"
