@@ -18,6 +18,11 @@ jobs:
       with:
         python-version: '3.8'
 
+    - name: Install dependencies
+      run: |
+        pip install PyGithub
+        pip install PyGithub requests
+
     - name: Get Draft Release ID
       id: get_draft_id
       run: |
