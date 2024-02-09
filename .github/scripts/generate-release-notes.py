@@ -180,7 +180,7 @@ def create_draft_release(repo, release_notes, version):
 
 
     # Update the release with the formatted message and keep it as a draft
-    if latest_release.draft :
+    if latest_release!= "" and latest_release.draft :
         latest_release.update_release(
             name=version,
             message=formatted_message,
