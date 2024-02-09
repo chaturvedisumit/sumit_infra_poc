@@ -227,6 +227,8 @@ if __name__ == "__main__":
     # Fetch closed pull requests and generate release notes
     release_notes = fetch_closed_pull_requests(repo)
 
+    print("release_notes", release_notes)
+
     # Create a new tag with the updated version
     release_notes_final = create_draft_release(repo, release_notes, new_version)
 
@@ -251,4 +253,5 @@ if __name__ == "__main__":
         latest_release.delete_release()
 
     print(f"Draft release {new_version} created successfully.")
+    
   
