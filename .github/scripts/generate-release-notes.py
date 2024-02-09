@@ -150,41 +150,47 @@ def group_release_info(release_notes):
 
 def create_draft_release(repo, release_notes, version):
     # Get the latest release
-    latest_release = repo.get_latest_release()
+    try:
+        latest_release = repo.get_releases()[0]
+    except:
+        latest_release = ""
 
-    # Check if the latest release is a draft
-    if latest_release and latest_release.draft:
-        # Get the body of the latest release
+    # Get the body of the latest release
+    if latest_release == "" :
+        release_body = ""
+    else:
         release_body = latest_release.body
 
-        # Merge the old body with the new release notes
-        merged_message = release_body + '\n\n' + release_notes
+    # Merge the old body with the new release notes
+    merged_message = release_body + '\n\n' + release_notes
 
-        # Format the merged message using group_release_info()
-        formatted_message = ""
-        grouped_info = group_release_info(merged_message)
-        for section, notes in grouped_info.items():
-            formatted_message += f"## {section}\n"
-            for note in notes:
-                formatted_message += f"{note}\n"
-            formatted_message += "\n"
+    # Format the merged message using group_release_info()
+    formatted_message = ""
+    grouped_info = group_release_info(merged_message)
+    # Format the merged message using group_release_info()
+    formatted_message = ""
+    for section, notes in grouped_info.items():
+        formatted_message += f"## {section}\n"
+        for note in notes:
+            formatted_message += f"{note}\n"
+        formatted_message += "\n"
 
-        # Update the release with the formatted message and keep it as a draft
+
+    # Update the release with the formatted message and keep it as a draft
+    if latest_release == "" :
+        new_draft_release = repo.create_git_release(
+        tag=new_version,
+        name=version,
+        message=formatted_message,
+        draft=True)
+    else:
         latest_release.update_release(
             name=version,
             message=formatted_message,
             draft=True
         )
-    else:
-        # If the latest release is not a draft, create a new draft release
-        new_draft_release = repo.create_git_release(
-            tag=version,
-            name=version,
-            message=release_notes,
-            draft=True
-        )
 
-    return release_notes
+    return formatted_message
 
 
 
