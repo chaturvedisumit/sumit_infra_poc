@@ -28,7 +28,7 @@ jobs:
       run: |
         draft_id=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases" | jq -r '.[] | select(.draft == true) | .id')
         echo "::set-output name=draft_id::$draft_id"
-        echo $draft_id
+        echo "draft_id is : "$draft_id
 
     - name: Publish Release
       id: publish_release
